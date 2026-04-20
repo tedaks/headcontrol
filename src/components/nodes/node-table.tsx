@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Node } from "@/lib/types";
 import { REGISTER_METHOD_LABELS } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NodeDetailDialog } from "./node-detail-dialog";
 import {
