@@ -1,5 +1,7 @@
 # HeadControl
 
+[![CI](https://github.com/headcontrol/headcontrol/actions/workflows/ci.yml/badge.svg)](https://github.com/headcontrol/headcontrol/actions/workflows/ci.yml)
+
 Web UI for Headscale - manage users, nodes, API keys, pre-auth keys, and ACL policies.
 
 ## Tech Stack
