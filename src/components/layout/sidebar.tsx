@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { 
   House, 
   Users, 
@@ -23,15 +24,11 @@ const navItems = [
   { href: "/policy", label: "Policy", icon: FileCode },
 ];
 
-export function Sidebar() {
+function NavContent() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex md:w-56 md:flex-col md:border-r border-border bg-card">
-      <div className="flex h-14 items-center px-4">
-        <span className="text-sm font-semibold">HeadControl</span>
-      </div>
-      <Separator />
+    <>
       <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -56,15 +53,41 @@ export function Sidebar() {
       <Separator />
       <div className="p-2">
         <form action="/api/logout" method="POST">
-          <button
+          <Button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-none px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            variant="ghost"
+            className="flex w-full items-center justify-start gap-3 rounded-none px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           >
             <SignOut size={18} />
             Sign Out
-          </button>
+          </Button>
         </form>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex md:w-56 md:flex-col md:border-r border-border bg-card">
+      <div className="flex h-14 items-center px-4">
+        <span className="text-sm font-semibold">HeadControl</span>
+      </div>
+      <Separator />
+      <NavContent />
     </aside>
+  );
+}
+
+/** Mobile version of the nav — rendered as a standalone block, not nested in <aside>. */
+export function MobileNavContent() {
+  return (
+    <div className="md:hidden bg-card p-2">
+      <div className="flex items-center px-3 py-2">
+        <span className="text-sm font-semibold">HeadControl</span>
+      </div>
+      <Separator />
+      <NavContent />
+    </div>
   );
 }

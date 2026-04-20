@@ -1,7 +1,8 @@
 "use client";
 
-import { Sidebar } from "./sidebar";
+import { MobileNavContent } from "./sidebar";
 import { List, X } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export function Header() {
@@ -10,19 +11,17 @@ export function Header() {
   return (
     <>
       <header className="md:hidden flex h-14 items-center border-b border-border px-4 bg-card">
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="text-muted-foreground"
         >
           {mobileMenuOpen ? <X size={24} /> : <List size={24} />}
-        </button>
+        </Button>
         <span className="ml-3 text-sm font-semibold">HeadControl</span>
       </header>
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-card">
-          <Sidebar />
-        </div>
-      )}
+      {mobileMenuOpen && <MobileNavContent />}
     </>
   );
 }

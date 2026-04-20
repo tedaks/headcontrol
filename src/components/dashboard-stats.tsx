@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { headscale } from "@/lib/headscale-client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Desktop, Users, CheckCircle, Warning } from "@phosphor-icons/react";
@@ -10,7 +9,17 @@ interface StatsData {
   nodesCount: number;
   usersCount: number;
   onlineCount: number;
-  dbHealthy: boolean;
+  dbHealthy: boolean | null;
+}
+
+function getErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    return (typeof obj.error === "string" ? obj.error : undefined)
+      ?? (typeof obj.message === "string" ? obj.message : undefined)
+      ?? fallback;
+  }
+  return fallback;
 }
 
 export function DashboardStats() {
@@ -18,27 +27,41 @@ export function DashboardStats() {
     nodesCount: 0,
     usersCount: 0,
     onlineCount: 0,
-    dbHealthy: false,
+    dbHealthy: null,
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchStats() {
       try {
+        const [healthRes, nodesRes, usersRes] = await Promise.all([
+          fetch("/api/headscale/health"),
+          fetch("/api/headscale/node"),
+          fetch("/api/headscale/user"),
+        ]);
+
+        if (!healthRes.ok || !nodesRes.ok || !usersRes.ok) {
+          const failed = !healthRes.ok ? healthRes : !nodesRes.ok ? nodesRes : usersRes;
+          const data = await failed.json().catch(() => ({}));
+          setError(getErrorMessage(data, "Failed to load stats"));
+          return;
+        }
+
         const [health, nodes, users] = await Promise.all([
-          headscale.health.check(),
-          headscale.nodes.list(),
-          headscale.users.list(),
+          healthRes.json(),
+          nodesRes.json(),
+          usersRes.json(),
         ]);
 
         setStats({
-          nodesCount: nodes.nodes.length,
-          usersCount: users.users.length,
-          onlineCount: nodes.nodes.filter((n: { online: boolean }) => n.online).length,
-          dbHealthy: health.databaseConnectivity,
+          nodesCount: nodes.nodes?.length ?? 0,
+          usersCount: users.users?.length ?? 0,
+          onlineCount: (nodes.nodes ?? []).filter((n: { online: boolean }) => n.online).length,
+          dbHealthy: health.databaseConnectivity ?? false,
         });
       } catch {
-        setStats((prev) => ({ ...prev, dbHealthy: false }));
+        setError("Failed to load dashboard stats");
       } finally {
         setLoading(false);
       }
@@ -51,7 +74,7 @@ export function DashboardStats() {
     { label: "Total Nodes", value: stats.nodesCount, icon: Desktop },
     { label: "Online Nodes", value: stats.onlineCount, icon: CheckCircle },
     { label: "Users", value: stats.usersCount, icon: Users },
-    { label: "DB Health", value: stats.dbHealthy ? "OK" : "Error", icon: stats.dbHealthy ? CheckCircle : Warning },
+    { label: "DB Health", value: stats.dbHealthy === null ? "..." : stats.dbHealthy ? "OK" : "Error", icon: stats.dbHealthy ? CheckCircle : Warning },
   ];
 
   if (loading) {
@@ -73,6 +96,14 @@ export function DashboardStats() {
             </Card>
           );
         })}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <Badge variant="destructive">{error}</Badge>
       </div>
     );
   }

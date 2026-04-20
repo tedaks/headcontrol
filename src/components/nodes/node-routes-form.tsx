@@ -17,20 +17,27 @@ interface NodeRoutesFormProps {
 export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpdated }: NodeRoutesFormProps) {
   const [approved, setApproved] = useState<string[]>(approvedRoutes);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
-      const res = await fetch(`/api/headscale/node/${nodeId}/approve_routes`, {
+      const res = await fetch(`/api/headscale/node/${encodeURIComponent(nodeId)}/approve_routes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ routes: approved }),
       });
-      if (res.ok) {
-        const { node } = await res.json();
-        onUpdated(node);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to update routes");
+        return;
       }
+      const { node } = await res.json();
+      onUpdated(node);
+    } catch {
+      setError("Failed to update routes");
     } finally {
       setLoading(false);
     }
@@ -54,7 +61,7 @@ export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpda
       {availableRoutes.map((route) => (
         <div key={route} className="flex items-center gap-2">
           <Switch
-            id={`route-${route}`}
+            id={`route-${encodeURIComponent(route)}`}
             checked={approved.includes(route)}
             onCheckedChange={(checked) => {
               setApproved((prev) =>
@@ -62,12 +69,13 @@ export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpda
               );
             }}
           />
-          <Label htmlFor={`route-${route}`} className="font-mono text-xs">
+          <Label htmlFor={`route-${encodeURIComponent(route)}`} className="font-mono text-xs">
             {route}
           </Label>
         </div>
       ))}
       <Button type="submit" size="sm" disabled={loading}>Save Routes</Button>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </form>
   );
 }

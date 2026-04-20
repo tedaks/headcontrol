@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Node } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,21 +30,41 @@ export function NodeDetailDialog({
   onNodeUpdated,
   onNodeDeleted,
 }: NodeDetailDialogProps) {
+  const [error, setError] = useState("");
+
   async function expireNode() {
     if (!confirm("Expire this node?")) return;
-    const res = await fetch(`/api/headscale/node/${node.id}/expire?disableExpiry=false`, {
-      method: "POST",
-    });
-    if (res.ok) {
+    setError("");
+    try {
+      const res = await fetch(`/api/headscale/node/${encodeURIComponent(node.id)}/expire?disableExpiry=false`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to expire node");
+        return;
+      }
       const { node: updated } = await res.json();
       onNodeUpdated(updated);
+    } catch {
+      setError("Failed to expire node");
     }
   }
 
   async function deleteNode() {
     if (!confirm("Delete this node? This cannot be undone.")) return;
-    const res = await fetch(`/api/headscale/node/${node.id}`, { method: "DELETE" });
-    if (res.ok) onNodeDeleted();
+    setError("");
+    try {
+      const res = await fetch(`/api/headscale/node/${encodeURIComponent(node.id)}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to delete node");
+        return;
+      }
+      onNodeDeleted();
+    } catch {
+      setError("Failed to delete node");
+    }
   }
 
   return (
@@ -60,7 +81,11 @@ export function NodeDetailDialog({
             <div className="text-muted-foreground">User</div>
             <div>{node.user?.name}</div>
             <div className="text-muted-foreground">IPs</div>
-            <div className="font-mono text-xs">{node.ipAddresses?.join(", ")}</div>
+            <div className="font-mono text-xs">
+              {Array.isArray(node.ipAddresses) && node.ipAddresses.length > 0
+                ? node.ipAddresses.join(", ")
+                : "—"}
+            </div>
             <div className="text-muted-foreground">Created</div>
             <div>{node.createdAt ? new Date(node.createdAt).toLocaleString() : "—"}</div>
             <div className="text-muted-foreground">Expiry</div>
@@ -79,6 +104,8 @@ export function NodeDetailDialog({
           />
 
           <Separator />
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={expireNode}>

@@ -13,12 +13,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CreateKeyDialogProps {
   users: User[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onKeyCreated: (key: PreAuthKey) => void;
+}
+
+function getErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    return (typeof obj.error === "string" ? obj.error : undefined)
+      ?? (typeof obj.message === "string" ? obj.message : undefined)
+      ?? fallback;
+  }
+  return fallback;
 }
 
 export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: CreateKeyDialogProps) {
@@ -46,8 +63,8 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
         body: JSON.stringify(body),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || "Failed to create key");
+        const data = await res.json().catch(() => ({}));
+        setError(getErrorMessage(data, "Failed to create key"));
         return;
       }
       const { preAuthKey } = await res.json();
@@ -89,16 +106,16 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>User</Label>
-              <select
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="w-full rounded-none border border-input bg-background px-3 py-2 text-sm"
-                required
-              >
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
+              <Select value={userId} onValueChange={(v) => { if (v !== null) setUserId(v); }} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a user" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Switch id="reusable" checked={reusable} onCheckedChange={setReusable} />

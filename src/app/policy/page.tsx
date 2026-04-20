@@ -1,9 +1,15 @@
-import { headscale } from "@/lib/headscale-client";
+import { getAuthFromCookies } from "@/lib/auth";
+import { createHeadscaleClient } from "@/lib/headscale-client";
 import { PolicyEditor } from "@/components/policy/policy-editor";
 
 export const dynamic = "force-dynamic";
 
 export default async function PolicyPage() {
+  const auth = await getAuthFromCookies();
+  if (!auth) {
+    return <p className="text-muted-foreground">Not authenticated</p>;
+  }
+  const headscale = createHeadscaleClient(auth.headscaleUrl, auth.apiKey);
   const { policy, updatedAt } = await headscale.policy.get();
   return (
     <div className="space-y-4">

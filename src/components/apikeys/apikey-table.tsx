@@ -18,21 +18,48 @@ import { ShieldPlus, Clock, Trash } from "@phosphor-icons/react";
 export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
   const [apiKeys, setApiKeys] = useState(initialKeys);
   const [createOpen, setCreateOpen] = useState(false);
+  const [error, setError] = useState("");
 
   async function expireKey(prefix: string) {
     if (!confirm("Expire this API key?")) return;
-    await fetch("/api/headscale/apikey/expire", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prefix }),
-    });
-    setApiKeys((prev) => prev.filter((k) => k.prefix !== prefix));
+    setError("");
+    try {
+      const res = await fetch("/api/headscale/apikey/expire", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prefix }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to expire API key");
+        return;
+      }
+      setApiKeys((prev) =>
+        prev.map((k) =>
+          k.prefix === prefix
+            ? { ...k, expiration: new Date(0).toISOString() }
+            : k
+        )
+      );
+    } catch {
+      setError("Failed to expire API key");
+    }
   }
 
   async function deleteKey(prefix: string, id: string) {
     if (!confirm("Delete this API key?")) return;
-    await fetch(`/api/headscale/apikey/${prefix}?id=${id}`, { method: "DELETE" });
-    setApiKeys((prev) => prev.filter((k) => k.prefix !== prefix));
+    setError("");
+    try {
+      const res = await fetch(`/api/headscale/apikey/${encodeURIComponent(prefix)}?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to delete API key");
+        return;
+      }
+      setApiKeys((prev) => prev.filter((k) => !(k.prefix === prefix && k.id === id)));
+    } catch {
+      setError("Failed to delete API key");
+    }
   }
 
   function isExpired(key: ApiKey): boolean {
@@ -48,6 +75,8 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
           Create API Key
         </Button>
       </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="rounded-none border border-border">
         <Table>
@@ -70,7 +99,7 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
               </TableRow>
             )}
             {apiKeys.map((key) => (
-              <TableRow key={key.prefix}>
+              <TableRow key={`${key.prefix}-${key.id}`}>
                 <TableCell className="font-mono text-xs">{key.prefix}...</TableCell>
                 <TableCell>
                   <Badge variant={isExpired(key) ? "secondary" : "default"}>
@@ -107,7 +136,8 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
       <CreateApiKeyDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onKeyCreated={() => {
+        onKeyCreated={(newKey) => {
+          setApiKeys((prev) => [...prev, newKey]);
           setCreateOpen(false);
         }}
       />

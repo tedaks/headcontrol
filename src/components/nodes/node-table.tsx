@@ -59,7 +59,9 @@ export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
                 <TableCell className="font-medium">{node.givenName || node.name}</TableCell>
                 <TableCell>{node.user?.name || "—"}</TableCell>
                 <TableCell className="font-mono text-xs">
-                  {node.ipAddresses?.join(", ") || "—"}
+                  {Array.isArray(node.ipAddresses) && node.ipAddresses.length > 0
+                    ? node.ipAddresses.join(", ")
+                    : "—"}
                 </TableCell>
                 <TableCell>
                   {REGISTER_METHOD_LABELS[node.registerMethod] || node.registerMethod}

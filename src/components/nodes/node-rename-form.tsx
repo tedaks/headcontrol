@@ -16,18 +16,25 @@ export function NodeRenameForm({ nodeId, currentName, onRenamed }: NodeRenameFor
   const [name, setName] = useState(currentName);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (name === currentName) { setEditing(false); return; }
+    setError("");
     setLoading(true);
     try {
-      const res = await fetch(`/api/headscale/node/${nodeId}/rename/${name}`, { method: "POST" });
-      if (res.ok) {
-        const { node } = await res.json();
-        onRenamed(node);
-        setEditing(false);
+      const res = await fetch(`/api/headscale/node/${encodeURIComponent(nodeId)}/rename/${encodeURIComponent(name)}`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to rename node");
+        return;
       }
+      const { node } = await res.json();
+      onRenamed(node);
+      setEditing(false);
+    } catch {
+      setError("Failed to rename node");
     } finally {
       setLoading(false);
     }
@@ -45,12 +52,15 @@ export function NodeRenameForm({ nodeId, currentName, onRenamed }: NodeRenameFor
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-2">
-      <div className="flex-1">
-        <label className="text-sm text-muted-foreground">Name</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <div className="flex items-end gap-2">
+        <div className="flex-1">
+          <label className="text-sm text-muted-foreground">Name</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
+        </div>
+        <Button type="submit" size="sm" disabled={loading}>Save</Button>
       </div>
-      <Button type="submit" size="sm" disabled={loading}>Save</Button>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </form>
   );
 }

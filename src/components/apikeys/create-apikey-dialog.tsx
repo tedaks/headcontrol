@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ApiKey } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,7 +16,17 @@ import { Label } from "@/components/ui/label";
 interface CreateApiKeyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onKeyCreated: () => void;
+  onKeyCreated: (key: ApiKey) => void;
+}
+
+function getErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    return (typeof obj.error === "string" ? obj.error : undefined)
+      ?? (typeof obj.message === "string" ? obj.message : undefined)
+      ?? fallback;
+  }
+  return fallback;
 }
 
 export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateApiKeyDialogProps) {
@@ -38,13 +49,25 @@ export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateA
         body: JSON.stringify(body),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || "Failed to create API key");
+        const data = await res.json().catch(() => ({}));
+        setError(getErrorMessage(data, "Failed to create API key"));
         return;
       }
-      const { apiKey } = await res.json();
-      setCreatedKey(apiKey);
-      onKeyCreated();
+      const data = await res.json();
+      const apiKeyString: string = data.apiKey;
+      setCreatedKey(apiKeyString);
+      // Re-fetch API keys list to get the full ApiKey object with prefix/id/etc.
+      try {
+        const listRes = await fetch("/api/headscale/apikey");
+        if (listRes.ok) {
+          const { apiKeys } = await listRes.json();
+          // The newest key should be the one we just created — find by matching or take last
+          const newKey = (apiKeys as ApiKey[]).find((k) => !k.expiration || new Date(k.expiration) > new Date());
+          if (newKey) onKeyCreated(newKey);
+        }
+      } catch {
+        // Non-critical: the table will refresh on next page load
+      }
     } catch {
       setError("Request failed");
     } finally {

@@ -18,17 +18,28 @@ import { Key, Clock } from "@phosphor-icons/react";
 export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; users: User[] }) {
   const [keys, setKeys] = useState(initialKeys);
   const [createOpen, setCreateOpen] = useState(false);
+  const [error, setError] = useState("");
 
   async function expireKey(id: string) {
     if (!confirm("Expire this key?")) return;
-    await fetch("/api/headscale/preauthkey/expire", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setKeys((prev) =>
-      prev.map((k) => (k.id === id ? { ...k, expiration: new Date().toISOString() } : k))
-    );
+    setError("");
+    try {
+      const res = await fetch("/api/headscale/preauthkey/expire", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to expire key");
+        return;
+      }
+      setKeys((prev) =>
+        prev.map((k) => (k.id === id ? { ...k, expiration: new Date().toISOString() } : k))
+      );
+    } catch {
+      setError("Failed to expire key");
+    }
   }
 
   function isExpired(key: PreAuthKey): boolean {
@@ -44,6 +55,8 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
           Create Key
         </Button>
       </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="rounded-none border border-border">
         <Table>
@@ -79,7 +92,7 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
                 <TableCell>{key.reusable ? "Yes" : "No"}</TableCell>
                 <TableCell>{key.ephemeral ? "Yes" : "No"}</TableCell>
                 <TableCell className="font-mono text-xs">
-                  {key.aclTags?.length > 0 ? key.aclTags.join(", ") : "—"}
+                  {Array.isArray(key.aclTags) && key.aclTags.length > 0 ? key.aclTags.join(", ") : "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-xs">
                   {key.expiration ? new Date(key.expiration).toLocaleString() : "—"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, FloppyDisk, Warning } from "@phosphor-icons/react";
@@ -15,17 +15,20 @@ export function PolicyEditor({ initialPolicy }: PolicyEditorProps) {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  function validateJson(): boolean {
+  function validateJson(text: string): boolean {
     try {
-      JSON.parse(policy);
+      JSON.parse(text);
       return true;
     } catch {
       return false;
     }
   }
 
+  // Compute once per render instead of calling validateJson() multiple times
+  const isValid = useMemo(() => validateJson(policy), [policy]);
+
   async function handleSave() {
-    if (!validateJson()) {
+    if (!isValid) {
       setError("Invalid JSON");
       return;
     }
@@ -39,8 +42,8 @@ export function PolicyEditor({ initialPolicy }: PolicyEditorProps) {
         body: JSON.stringify({ policy }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || "Failed to save policy");
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || data.message || "Failed to save policy");
         return;
       }
       setSaveSuccess(true);
@@ -55,16 +58,16 @@ export function PolicyEditor({ initialPolicy }: PolicyEditorProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {validateJson() ? (
+          {isValid ? (
             <CheckCircle size={16} className="text-green-500" weight="fill" />
           ) : (
             <Warning size={16} className="text-destructive" weight="fill" />
           )}
           <span className="text-xs text-muted-foreground">
-            {validateJson() ? "Valid JSON" : "Invalid JSON"}
+            {isValid ? "Valid JSON" : "Invalid JSON"}
           </span>
         </div>
-        <Button size="sm" onClick={handleSave} disabled={saving || !validateJson()}>
+        <Button size="sm" onClick={handleSave} disabled={saving || !isValid}>
           <FloppyDisk size={14} className="mr-1" />
           {saving ? "Saving..." : "Save"}
         </Button>

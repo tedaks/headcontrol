@@ -19,6 +19,16 @@ interface CreateUserDialogProps {
   onUserCreated: (user: User) => void;
 }
 
+function getErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    return (typeof obj.error === "string" ? obj.error : undefined)
+      ?? (typeof obj.message === "string" ? obj.message : undefined)
+      ?? fallback;
+  }
+  return fallback;
+}
+
 export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUserDialogProps) {
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -37,8 +47,8 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
         body: JSON.stringify({ name, displayName, email }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || "Failed to create user");
+        const data = await res.json().catch(() => ({}));
+        setError(getErrorMessage(data, "Failed to create user"));
         return;
       }
       const { user } = await res.json();

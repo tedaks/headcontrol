@@ -17,11 +17,22 @@ import { Trash, UserPlus } from "@phosphor-icons/react";
 export function UserTable({ users: initialUsers }: { users: User[] }) {
   const [users, setUsers] = useState(initialUsers);
   const [createOpen, setCreateOpen] = useState(false);
+  const [error, setError] = useState("");
 
   async function deleteUser(id: string) {
     if (!confirm("Delete this user?")) return;
-    await fetch(`/api/headscale/user/${id}`, { method: "DELETE" });
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+    setError("");
+    try {
+      const res = await fetch(`/api/headscale/user/${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Failed to delete user" }));
+        setError(data.error || data.message || "Failed to delete user");
+        return;
+      }
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch {
+      setError("Failed to delete user");
+    }
   }
 
   return (
@@ -32,6 +43,8 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
           Create User
         </Button>
       </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="rounded-none border border-border">
         <Table>
