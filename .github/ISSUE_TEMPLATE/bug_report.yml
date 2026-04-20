@@ -1,0 +1,47 @@
+name: Bug Report
+description: Report a bug to help us improve
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Description
+
+        A clear description of the bug.
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      placeholder: What should happen
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual Behavior"
+      placeholder: What actually happens
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment"
+      placeholder: |
+        - OS: [e.g., macOS, Linux]
+        - Node version: [e.g., 20.x]
+        - Headscale version: [if applicable]
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Relevant Logs"
+      placeholder: Any error messages or logs
