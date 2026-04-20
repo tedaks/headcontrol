@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const apiKey = request.cookies.get("headscale_api_key")?.value;
   const isLoginPage = request.nextUrl.pathname === "/login";
   const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
