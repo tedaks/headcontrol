@@ -1,27 +1,26 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { PreAuthKey, User } from "@/lib/types";
-import { headscaleApi } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import type { PreAuthKey, User } from '@/lib/types';
+import { headscaleApi } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-
+} from '@/components/ui/select';
 
 interface CreateKeyDialogProps {
   users: User[];
@@ -31,29 +30,33 @@ interface CreateKeyDialogProps {
 }
 
 export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: CreateKeyDialogProps) {
-  const [userId, setUserId] = useState(users[0]?.id ?? "");
+  const [userId, setUserId] = useState(users[0]?.id ?? '');
   const [reusable, setReusable] = useState(false);
   const [ephemeral, setEphemeral] = useState(false);
-  const [expiration, setExpiration] = useState("");
-  const [aclTags, setAclTags] = useState("");
-  const [error, setError] = useState("");
+  const [expiration, setExpiration] = useState('');
+  const [aclTags, setAclTags] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
       const body: Record<string, unknown> = { user: userId, reusable, ephemeral };
       if (expiration) body.expiration = new Date(expiration).toISOString();
-      if (aclTags) body.aclTags = aclTags.split(",").map((t) => t.trim()).filter(Boolean);
+      if (aclTags)
+        body.aclTags = aclTags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
 
       const { preAuthKey } = await headscaleApi.preAuthKeys.create(body);
       setCreatedKey(preAuthKey.key);
       onKeyCreated(preAuthKey);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : 'Request failed');
     } finally {
       setLoading(false);
     }
@@ -63,8 +66,8 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
     setCreatedKey(null);
     setReusable(false);
     setEphemeral(false);
-    setExpiration("");
-    setAclTags("");
+    setExpiration('');
+    setAclTags('');
     onOpenChange(false);
   }
 
@@ -76,8 +79,10 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
         </DialogHeader>
         {createdKey ? (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Copy this key now. It won&apos;t be shown again.</p>
-            <div className="rounded-none border border-border bg-muted p-3 font-mono text-xs break-all">
+            <p className="text-muted-foreground text-sm">
+              Copy this key now. It won&apos;t be shown again.
+            </p>
+            <div className="border-border bg-muted rounded-none border p-3 font-mono text-xs break-all">
               {createdKey}
             </div>
             <DialogFooter>
@@ -88,13 +93,21 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>User</Label>
-              <Select value={userId} onValueChange={(v) => { if (v !== null) setUserId(v); }} required>
+              <Select
+                value={userId}
+                onValueChange={(v) => {
+                  if (v !== null) setUserId(v);
+                }}
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a user" />
                 </SelectTrigger>
                 <SelectContent>
                   {users.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -126,10 +139,10 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
                 className="font-mono text-xs"
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="text-destructive text-sm">{error}</p>}
             <DialogFooter>
               <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create"}
+                {loading ? 'Creating...' : 'Create'}
               </Button>
             </DialogFooter>
           </form>

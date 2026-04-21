@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { Node } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { RoadHorizon } from "@phosphor-icons/react";
-import { headscaleApi } from "@/lib/api-client";
+import { useState } from 'react';
+import type { Node } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { RoadHorizon } from '@phosphor-icons/react';
+import { headscaleApi } from '@/lib/api-client';
 
 interface NodeRoutesFormProps {
   nodeId: string;
@@ -15,20 +15,25 @@ interface NodeRoutesFormProps {
   onUpdated: (node: Node) => void;
 }
 
-export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpdated }: NodeRoutesFormProps) {
+export function NodeRoutesForm({
+  nodeId,
+  availableRoutes,
+  approvedRoutes,
+  onUpdated,
+}: NodeRoutesFormProps) {
   const [approved, setApproved] = useState<string[]>(approvedRoutes);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
       const { node } = await headscaleApi.nodes.setApprovedRoutes(nodeId, approved);
       onUpdated(node);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update routes");
+      setError(err instanceof Error ? err.message : 'Failed to update routes');
     } finally {
       setLoading(false);
     }
@@ -36,7 +41,7 @@ export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpda
 
   if (availableRoutes.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground flex items-center gap-2">
+      <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <RoadHorizon size={14} />
         No routes advertised
       </div>
@@ -55,9 +60,7 @@ export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpda
             id={`route-${encodeURIComponent(route)}`}
             checked={approved.includes(route)}
             onCheckedChange={(checked) => {
-              setApproved((prev) =>
-                checked ? [...prev, route] : prev.filter((r) => r !== route)
-              );
+              setApproved((prev) => (checked ? [...prev, route] : prev.filter((r) => r !== route)));
             }}
           />
           <Label htmlFor={`route-${encodeURIComponent(route)}`} className="font-mono text-xs">
@@ -65,8 +68,10 @@ export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpda
           </Label>
         </div>
       ))}
-      <Button type="submit" size="sm" disabled={loading}>Save Routes</Button>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      <Button type="submit" size="sm" disabled={loading}>
+        Save Routes
+      </Button>
+      {error && <p className="text-destructive text-xs">{error}</p>}
     </form>
   );
 }

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { PreAuthKey, User } from "@/lib/types";
-import { headscaleApi } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CreateKeyDialog } from "./create-key-dialog";
-import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useState } from 'react';
+import type { PreAuthKey, User } from '@/lib/types';
+import { headscaleApi } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CreateKeyDialog } from './create-key-dialog';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   Table,
   TableBody,
@@ -14,24 +14,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Key, Clock } from "@phosphor-icons/react";
+} from '@/components/ui/table';
+import { Key, Clock } from '@phosphor-icons/react';
 
 export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; users: User[] }) {
   const [keys, setKeys] = useState(initialKeys);
   const [createOpen, setCreateOpen] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const { confirm, dialog } = useConfirm();
 
   async function expireKey(id: string) {
-    setError("");
+    setError('');
     try {
       await headscaleApi.preAuthKeys.expire(id);
       setKeys((prev) =>
         prev.map((k) => (k.id === id ? { ...k, expiration: new Date().toISOString() } : k))
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to expire key");
+      setError(err instanceof Error ? err.message : 'Failed to expire key');
     }
   }
 
@@ -50,9 +50,9 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
         </Button>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
 
-      <div className="rounded-none border border-border">
+      <div className="border-border rounded-none border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -69,7 +69,7 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
           <TableBody>
             {keys.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-muted-foreground py-8 text-center">
                   No pre-auth keys found
                 </TableCell>
               </TableRow>
@@ -79,28 +79,34 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
                 <TableCell className="font-mono text-xs">{key.id}</TableCell>
                 <TableCell>{key.user?.name}</TableCell>
                 <TableCell>
-                  <Badge variant={isExpired(key) || key.used ? "secondary" : "default"}>
-                    {isExpired(key) ? "Expired" : key.used ? "Used" : "Active"}
+                  <Badge variant={isExpired(key) || key.used ? 'secondary' : 'default'}>
+                    {isExpired(key) ? 'Expired' : key.used ? 'Used' : 'Active'}
                   </Badge>
                 </TableCell>
-                <TableCell>{key.reusable ? "Yes" : "No"}</TableCell>
-                <TableCell>{key.ephemeral ? "Yes" : "No"}</TableCell>
+                <TableCell>{key.reusable ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{key.ephemeral ? 'Yes' : 'No'}</TableCell>
                 <TableCell className="font-mono text-xs">
-                  {Array.isArray(key.aclTags) && key.aclTags.length > 0 ? key.aclTags.join(", ") : "—"}
+                  {Array.isArray(key.aclTags) && key.aclTags.length > 0
+                    ? key.aclTags.join(', ')
+                    : '—'}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-xs">
-                  {key.expiration ? new Date(key.expiration).toLocaleString() : "—"}
+                  {key.expiration ? new Date(key.expiration).toLocaleString() : '—'}
                 </TableCell>
                 <TableCell>
                   {!isExpired(key) && (
-                    <Button variant="ghost" size="icon-xs" onClick={() => {
-                      confirm({
-                        title: "Expire Pre-Auth Key",
-                        description: "Are you sure you want to expire this key?",
-                        confirmLabel: "Expire",
-                        onConfirm: () => expireKey(key.id),
-                      });
-                    }}>
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => {
+                        confirm({
+                          title: 'Expire Pre-Auth Key',
+                          description: 'Are you sure you want to expire this key?',
+                          confirmLabel: 'Expire',
+                          onConfirm: () => expireKey(key.id),
+                        });
+                      }}
+                    >
                       <Clock size={14} />
                     </Button>
                   )}

@@ -1,8 +1,8 @@
-import { getAuthFromCookies } from "@/lib/auth";
-import { getCachedApiKeys } from "@/lib/server-cache";
-import { ApiKeyTable } from "@/components/apikeys/apikey-table";
+import { getAuthFromCookies } from '@/lib/auth';
+import { getCachedApiKeys } from '@/lib/server-cache';
+import { ApiKeyTable } from '@/components/apikeys/apikey-table';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function ApiKeysPage() {
   const auth = await getAuthFromCookies();

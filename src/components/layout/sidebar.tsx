@@ -1,27 +1,19 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { 
-  House, 
-  Users, 
-  Desktop, 
-  Key, 
-  ShieldCheck, 
-  FileCode,
-  SignOut,
-} from "@phosphor-icons/react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { House, Users, Desktop, Key, ShieldCheck, FileCode, SignOut } from '@phosphor-icons/react';
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: House },
-  { href: "/nodes", label: "Nodes", icon: Desktop },
-  { href: "/users", label: "Users", icon: Users },
-  { href: "/preauthkeys", label: "Pre-Auth Keys", icon: Key },
-  { href: "/apikeys", label: "API Keys", icon: ShieldCheck },
-  { href: "/policy", label: "Policy", icon: FileCode },
+  { href: '/', label: 'Dashboard', icon: House },
+  { href: '/nodes', label: 'Nodes', icon: Desktop },
+  { href: '/users', label: 'Users', icon: Users },
+  { href: '/preauthkeys', label: 'Pre-Auth Keys', icon: Key },
+  { href: '/apikeys', label: 'API Keys', icon: ShieldCheck },
+  { href: '/policy', label: 'Policy', icon: FileCode },
 ];
 
 function NavContent() {
@@ -32,19 +24,20 @@ function NavContent() {
       <nav className="flex-1 space-y-1 p-2">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const isActive =
+            pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-none px-3 py-2 text-sm transition-colors",
+                'flex items-center gap-3 rounded-none px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               )}
             >
-              <Icon size={18} weight={isActive ? "fill" : "regular"} />
+              <Icon size={18} weight={isActive ? 'fill' : 'regular'} />
               {item.label}
             </Link>
           );
@@ -56,7 +49,7 @@ function NavContent() {
           <Button
             type="submit"
             variant="ghost"
-            className="flex w-full items-center justify-start gap-3 rounded-none px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full items-center justify-start gap-3 rounded-none px-3 py-2 text-sm"
           >
             <SignOut size={18} />
             Sign Out
@@ -69,7 +62,7 @@ function NavContent() {
 
 export function Sidebar() {
   return (
-    <aside className="hidden md:flex md:w-56 md:flex-col md:border-r border-border bg-card">
+    <aside className="border-border bg-card hidden md:flex md:w-56 md:flex-col md:border-r">
       <div className="flex h-14 items-center px-4">
         <span className="text-sm font-semibold">HeadControl</span>
       </div>
@@ -82,7 +75,7 @@ export function Sidebar() {
 /** Mobile version of the nav — rendered as a standalone block, not nested in <aside>. */
 export function MobileNavContent() {
   return (
-    <div className="md:hidden bg-card p-2">
+    <div className="bg-card p-2 md:hidden">
       <div className="flex items-center px-3 py-2">
         <span className="text-sm font-semibold">HeadControl</span>
       </div>

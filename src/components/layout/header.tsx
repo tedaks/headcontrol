@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { MobileNavContent } from "./sidebar";
-import { List, X } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { MobileNavContent } from './sidebar';
+import { List, X } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
-      <header className="md:hidden flex h-14 items-center border-b border-border px-4 bg-card">
+      <header className="border-border bg-card flex h-14 items-center border-b px-4 md:hidden">
         <Button
           variant="ghost"
           size="icon-sm"

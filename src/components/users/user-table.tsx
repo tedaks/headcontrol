@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { User } from "@/lib/types";
-import { headscaleApi } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { CreateUserDialog } from "./create-user-dialog";
-import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useState } from 'react';
+import type { User } from '@/lib/types';
+import { headscaleApi } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { CreateUserDialog } from './create-user-dialog';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   Table,
   TableBody,
@@ -13,13 +13,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Trash, UserPlus } from "@phosphor-icons/react";
+} from '@/components/ui/table';
+import { Trash, UserPlus } from '@phosphor-icons/react';
 
 export function UserTable({ users: initialUsers }: { users: User[] }) {
   const [users, setUsers] = useState(initialUsers);
   const [createOpen, setCreateOpen] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const { confirm, dialog } = useConfirm();
 
   async function deleteUser(id: string) {
@@ -27,17 +27,17 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
       await headscaleApi.users.delete(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete user");
+      setError(err instanceof Error ? err.message : 'Failed to delete user');
     }
   }
 
   function promptDelete(id: string) {
-    setError("");
+    setError('');
     confirm({
-      title: "Delete User",
-      description: "Are you sure you want to delete this user? This action cannot be undone.",
+      title: 'Delete User',
+      description: 'Are you sure you want to delete this user? This action cannot be undone.',
       destructive: true,
-      confirmLabel: "Delete",
+      confirmLabel: 'Delete',
       onConfirm: () => deleteUser(id),
     });
   }
@@ -52,9 +52,9 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
         </Button>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
 
-      <div className="rounded-none border border-border">
+      <div className="border-border rounded-none border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -69,7 +69,7 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
           <TableBody>
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-muted-foreground py-8 text-center">
                   No users found
                 </TableCell>
               </TableRow>
@@ -77,18 +77,14 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
             {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.displayName || "—"}</TableCell>
-                <TableCell>{user.email || "—"}</TableCell>
-                <TableCell>{user.provider || "—"}</TableCell>
+                <TableCell>{user.displayName || '—'}</TableCell>
+                <TableCell>{user.email || '—'}</TableCell>
+                <TableCell>{user.provider || '—'}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => promptDelete(user.id)}
-                  >
+                  <Button variant="ghost" size="icon-xs" onClick={() => promptDelete(user.id)}>
                     <Trash size={14} className="text-destructive" />
                   </Button>
                 </TableCell>

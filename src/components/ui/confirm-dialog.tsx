@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -26,8 +26,8 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
   destructive = false,
   onConfirm,
 }: ConfirmDialogProps) {
@@ -37,15 +37,18 @@ export function ConfirmDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-muted-foreground text-sm">{description}</p>
         <DialogFooter>
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
             {cancelLabel}
           </Button>
           <Button
             size="sm"
-            variant={destructive ? "destructive" : "default"}
-            onClick={() => { onConfirm(); onOpenChange(false); }}
+            variant={destructive ? 'destructive' : 'default'}
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}
           >
             {confirmLabel}
           </Button>
@@ -67,8 +70,8 @@ export function useConfirm() {
     destructive?: boolean;
   }>({
     open: false,
-    title: "",
-    description: "",
+    title: '',
+    description: '',
   });
 
   // Use a ref so the dialog can always invoke the latest callback,

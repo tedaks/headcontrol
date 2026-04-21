@@ -1,9 +1,9 @@
-import { getAuthFromCookies } from "@/lib/auth";
-import { createHeadscaleClient } from "@/lib/headscale-client";
-import { getCachedPreAuthKeys } from "@/lib/server-cache";
-import { KeyTable } from "@/components/preauthkeys/key-table";
+import { getAuthFromCookies } from '@/lib/auth';
+import { createHeadscaleClient } from '@/lib/headscale-client';
+import { getCachedPreAuthKeys } from '@/lib/server-cache';
+import { KeyTable } from '@/components/preauthkeys/key-table';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function PreAuthKeysPage() {
   const auth = await getAuthFromCookies();

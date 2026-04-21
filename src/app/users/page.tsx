@@ -1,8 +1,8 @@
-import { getAuthFromCookies } from "@/lib/auth";
-import { getCachedUsers } from "@/lib/server-cache";
-import { UserTable } from "@/components/users/user-table";
+import { getAuthFromCookies } from '@/lib/auth';
+import { getCachedUsers } from '@/lib/server-cache';
+import { UserTable } from '@/components/users/user-table';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function UsersPage() {
   const auth = await getAuthFromCookies();

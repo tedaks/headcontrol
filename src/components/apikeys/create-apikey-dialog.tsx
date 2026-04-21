@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { ApiKey } from "@/lib/types";
-import { headscaleApi } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import type { ApiKey } from '@/lib/types';
+import { headscaleApi } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface CreateApiKeyDialogProps {
   open: boolean;
@@ -21,14 +21,14 @@ interface CreateApiKeyDialogProps {
 }
 
 export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateApiKeyDialogProps) {
-  const [expiration, setExpiration] = useState("");
-  const [error, setError] = useState("");
+  const [expiration, setExpiration] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
       const expirationIso = expiration ? new Date(expiration).toISOString() : undefined;
@@ -40,13 +40,15 @@ export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateA
       try {
         const listData = await headscaleApi.apiKeys.list();
         // The newest key should be the one we just created — find by matching or take last
-        const newKey = listData.apiKeys.find((k) => !k.expiration || new Date(k.expiration) > new Date());
+        const newKey = listData.apiKeys.find(
+          (k) => !k.expiration || new Date(k.expiration) > new Date()
+        );
         if (newKey) onKeyCreated(newKey);
       } catch {
         // Non-critical: the table will refresh on next page load
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : 'Request failed');
     } finally {
       setLoading(false);
     }
@@ -54,7 +56,7 @@ export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateA
 
   function handleClose() {
     setCreatedKey(null);
-    setExpiration("");
+    setExpiration('');
     onOpenChange(false);
   }
 
@@ -66,8 +68,10 @@ export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateA
         </DialogHeader>
         {createdKey ? (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Copy this key now. It won&apos;t be shown again.</p>
-            <div className="rounded-none border border-border bg-muted p-3 font-mono text-xs break-all">
+            <p className="text-muted-foreground text-sm">
+              Copy this key now. It won&apos;t be shown again.
+            </p>
+            <div className="border-border bg-muted rounded-none border p-3 font-mono text-xs break-all">
               {createdKey}
             </div>
             <DialogFooter>
@@ -84,12 +88,12 @@ export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateA
                 value={expiration}
                 onChange={(e) => setExpiration(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">Defaults to 90 days if not set</p>
+              <p className="text-muted-foreground text-xs">Defaults to 90 days if not set</p>
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="text-destructive text-sm">{error}</p>}
             <DialogFooter>
               <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create"}
+                {loading ? 'Creating...' : 'Create'}
               </Button>
             </DialogFooter>
           </form>

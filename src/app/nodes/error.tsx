@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function NodesError({ error, reset }: { error: Error; reset: () => void }) {
   const [attempts, setAttempts] = useState(0);
@@ -9,8 +9,16 @@ export default function NodesError({ error, reset }: { error: Error; reset: () =
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Nodes</h1>
-      <p className="text-sm text-destructive">{error.message || "Failed to load nodes"}</p>
-      <Button onClick={() => { setAttempts(a => a + 1); reset(); }} size="sm">Try again</Button>
+      <p className="text-destructive text-sm">{error.message || 'Failed to load nodes'}</p>
+      <Button
+        onClick={() => {
+          setAttempts((a) => a + 1);
+          reset();
+        }}
+        size="sm"
+      >
+        Try again
+      </Button>
       {attempts >= 1 && (
         <Button onClick={() => window.location.reload()} size="sm" variant="outline">
           Reload page

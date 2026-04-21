@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { Node } from "@/lib/types";
-import { REGISTER_METHOD_LABELS } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
-import { NodeDetailDialog } from "./node-detail-dialog";
+import { useState } from 'react';
+import type { Node } from '@/lib/types';
+import { REGISTER_METHOD_LABELS } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
+import { NodeDetailDialog } from './node-detail-dialog';
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
   const [nodes, setNodes] = useState(initialNodes);
@@ -24,7 +24,7 @@ export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
 
   return (
     <>
-      <div className="rounded-none border border-border">
+      <div className="border-border rounded-none border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -40,7 +40,7 @@ export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
           <TableBody>
             {nodes.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
                   No nodes found
                 </TableCell>
               </TableRow>
@@ -52,22 +52,22 @@ export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
                 onClick={() => setDetailNode(node)}
               >
                 <TableCell>
-                  <Badge variant={node.online ? "default" : "secondary"}>
-                    {node.online ? "Online" : "Offline"}
+                  <Badge variant={node.online ? 'default' : 'secondary'}>
+                    {node.online ? 'Online' : 'Offline'}
                   </Badge>
                 </TableCell>
                 <TableCell className="font-medium">{node.givenName || node.name}</TableCell>
-                <TableCell>{node.user?.name || "—"}</TableCell>
+                <TableCell>{node.user?.name || '—'}</TableCell>
                 <TableCell className="font-mono text-xs">
                   {Array.isArray(node.ipAddresses) && node.ipAddresses.length > 0
-                    ? node.ipAddresses.join(", ")
-                    : "—"}
+                    ? node.ipAddresses.join(', ')
+                    : '—'}
                 </TableCell>
                 <TableCell>
                   {REGISTER_METHOD_LABELS[node.registerMethod] || node.registerMethod}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-xs">
-                  {node.lastSeen ? new Date(node.lastSeen).toLocaleString() : "—"}
+                  {node.lastSeen ? new Date(node.lastSeen).toLocaleString() : '—'}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-xs">
                   {node.expiry ? (
@@ -77,7 +77,7 @@ export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
                       new Date(node.expiry).toLocaleDateString()
                     )
                   ) : (
-                    "Never"
+                    'Never'
                   )}
                 </TableCell>
               </TableRow>
@@ -90,7 +90,9 @@ export function NodeTable({ nodes: initialNodes }: { nodes: Node[] }) {
         <NodeDetailDialog
           node={detailNode}
           open={!!detailNode}
-          onOpenChange={(open) => { if (!open) setDetailNode(null); }}
+          onOpenChange={(open) => {
+            if (!open) setDetailNode(null);
+          }}
           onNodeUpdated={updateNode}
           onNodeDeleted={() => {
             setNodes((prev) => prev.filter((n) => n.id !== detailNode.id));

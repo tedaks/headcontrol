@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { User } from "@/lib/types";
-import { headscaleApi } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import type { User } from '@/lib/types';
+import { headscaleApi } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -21,24 +21,24 @@ interface CreateUserDialogProps {
 }
 
 export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUserDialogProps) {
-  const [name, setName] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [name, setName] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
       const { user } = await headscaleApi.users.create({ name, displayName, email });
       onUserCreated(user);
-      setName("");
-      setDisplayName("");
-      setEmail("");
+      setName('');
+      setDisplayName('');
+      setEmail('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : 'Request failed');
     } finally {
       setLoading(false);
     }
@@ -57,16 +57,25 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
           </div>
           <div className="space-y-2">
             <Label htmlFor="displayName">Display Name</Label>
-            <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+            <Input
+              id="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>
         </form>

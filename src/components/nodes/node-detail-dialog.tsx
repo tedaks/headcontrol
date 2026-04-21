@@ -1,21 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { Node } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { useConfirm } from "@/components/ui/confirm-dialog";
-import { NodeRenameForm } from "./node-rename-form";
-import { NodeTagsForm } from "./node-tags-form";
-import { NodeRoutesForm } from "./node-routes-form";
-import { Trash, ClockCounterClockwise } from "@phosphor-icons/react";
-import { headscaleApi } from "@/lib/api-client";
+import { useState } from 'react';
+import type { Node } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { NodeRenameForm } from './node-rename-form';
+import { NodeTagsForm } from './node-tags-form';
+import { NodeRoutesForm } from './node-routes-form';
+import { Trash, ClockCounterClockwise } from '@phosphor-icons/react';
+import { headscaleApi } from '@/lib/api-client';
 
 interface NodeDetailDialogProps {
   node: Node;
@@ -32,44 +27,45 @@ export function NodeDetailDialog({
   onNodeUpdated,
   onNodeDeleted,
 }: NodeDetailDialogProps) {
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const { confirm, dialog } = useConfirm();
 
   async function expireNode() {
-    setError("");
+    setError('');
     try {
       const { node: updated } = await headscaleApi.nodes.expire(node.id);
       onNodeUpdated(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to expire node");
+      setError(err instanceof Error ? err.message : 'Failed to expire node');
     }
   }
 
   async function deleteNode() {
-    setError("");
+    setError('');
     try {
       await headscaleApi.nodes.delete(node.id);
       onNodeDeleted();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete node");
+      setError(err instanceof Error ? err.message : 'Failed to delete node');
     }
   }
 
   function promptExpire() {
     confirm({
-      title: "Expire Node",
-      description: "Are you sure you want to expire this node? It will no longer be able to connect.",
-      confirmLabel: "Expire",
+      title: 'Expire Node',
+      description:
+        'Are you sure you want to expire this node? It will no longer be able to connect.',
+      confirmLabel: 'Expire',
       onConfirm: expireNode,
     });
   }
 
   function promptDelete() {
     confirm({
-      title: "Delete Node",
-      description: "Are you sure you want to delete this node? This action cannot be undone.",
+      title: 'Delete Node',
+      description: 'Are you sure you want to delete this node? This action cannot be undone.',
       destructive: true,
-      confirmLabel: "Delete",
+      confirmLabel: 'Delete',
       onConfirm: deleteNode,
     });
   }
@@ -92,19 +88,27 @@ export function NodeDetailDialog({
               <div className="text-muted-foreground">IPs</div>
               <div className="font-mono text-xs">
                 {Array.isArray(node.ipAddresses) && node.ipAddresses.length > 0
-                  ? node.ipAddresses.join(", ")
-                  : "—"}
+                  ? node.ipAddresses.join(', ')
+                  : '—'}
               </div>
               <div className="text-muted-foreground">Created</div>
-              <div>{node.createdAt ? new Date(node.createdAt).toLocaleString() : "—"}</div>
+              <div>{node.createdAt ? new Date(node.createdAt).toLocaleString() : '—'}</div>
               <div className="text-muted-foreground">Expiry</div>
-              <div>{node.expiry ? new Date(node.expiry).toLocaleString() : "Never"}</div>
+              <div>{node.expiry ? new Date(node.expiry).toLocaleString() : 'Never'}</div>
             </div>
 
             <Separator />
 
-            <NodeRenameForm nodeId={node.id} currentName={node.givenName || node.name} onRenamed={onNodeUpdated} />
-            <NodeTagsForm nodeId={node.id} currentTags={node.tags || []} onUpdated={onNodeUpdated} />
+            <NodeRenameForm
+              nodeId={node.id}
+              currentName={node.givenName || node.name}
+              onRenamed={onNodeUpdated}
+            />
+            <NodeTagsForm
+              nodeId={node.id}
+              currentTags={node.tags || []}
+              onUpdated={onNodeUpdated}
+            />
             <NodeRoutesForm
               nodeId={node.id}
               availableRoutes={node.availableRoutes || []}
@@ -114,7 +118,7 @@ export function NodeDetailDialog({
 
             <Separator />
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="text-destructive text-sm">{error}</p>}
 
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={promptExpire}>

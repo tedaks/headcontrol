@@ -1,8 +1,8 @@
-import { getAuthFromCookies } from "@/lib/auth";
-import { getCachedNodes } from "@/lib/server-cache";
-import { NodeTable } from "@/components/nodes/node-table";
+import { getAuthFromCookies } from '@/lib/auth';
+import { getCachedNodes } from '@/lib/server-cache';
+import { NodeTable } from '@/components/nodes/node-table';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function NodesPage() {
   const auth = await getAuthFromCookies();
