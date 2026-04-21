@@ -1,5 +1,5 @@
 import { getAuthFromCookies } from "@/lib/auth";
-import { createHeadscaleClient } from "@/lib/headscale-client";
+import { getCachedApiKeys } from "@/lib/server-cache";
 import { ApiKeyTable } from "@/components/apikeys/apikey-table";
 
 export const dynamic = "force-dynamic";
@@ -9,8 +9,7 @@ export default async function ApiKeysPage() {
   if (!auth) {
     return <p className="text-muted-foreground">Not authenticated</p>;
   }
-  const headscale = createHeadscaleClient(auth.headscaleUrl, auth.apiKey);
-  const { apiKeys } = await headscale.apiKeys.list();
+  const { apiKeys } = await getCachedApiKeys(auth.headscaleUrl, auth.apiKey);
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">API Keys</h1>

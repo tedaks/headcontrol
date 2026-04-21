@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Desktop, Users, CheckCircle, Warning } from "@phosphor-icons/react";
-import { getErrorMessage } from "@/lib/utils";
 
 interface StatsData {
   nodesCount: number;
@@ -13,72 +12,24 @@ interface StatsData {
   dbHealthy: boolean | null;
 }
 
-// Simple in-memory cache to avoid refetching on every mount
-const cache: {
-  data?: StatsData;
-  ts?: number;
-} = {};
-
-const TTL_MS = 30_000;
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export function DashboardStats() {
-  const [stats, setStats] = useState<StatsData>({
-    nodesCount: 0,
-    usersCount: 0,
-    onlineCount: 0,
-    dbHealthy: null,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: health, error: healthError, isLoading: healthLoading } = useSWR("/api/headscale/health", fetcher, { refreshInterval: 30000 });
+  const { data: nodes, error: nodesError, isLoading: nodesLoading } = useSWR("/api/headscale/node", fetcher, { refreshInterval: 30000 });
+  const { data: users, error: usersError, isLoading: usersLoading } = useSWR("/api/headscale/user", fetcher, { refreshInterval: 30000 });
 
-  useEffect(() => {
-    async function fetchStats() {
-      // Use cached data if still fresh
-      if (cache.data && cache.ts && Date.now() - cache.ts < TTL_MS) {
-        setStats(cache.data);
-        setLoading(false);
-        return;
-      }
+  const loading = healthLoading || nodesLoading || usersLoading;
+  const errorMessage = healthError?.message || nodesError?.message || usersError?.message || "";
 
-      try {
-        const [healthRes, nodesRes, usersRes] = await Promise.all([
-          fetch("/api/headscale/health"),
-          fetch("/api/headscale/node"),
-          fetch("/api/headscale/user"),
-        ]);
-
-        if (!healthRes.ok || !nodesRes.ok || !usersRes.ok) {
-          const failed = !healthRes.ok ? healthRes : !nodesRes.ok ? nodesRes : usersRes;
-          const data = await failed.json().catch(() => ({}));
-          setError(getErrorMessage(data, "Failed to load stats"));
-          return;
-        }
-
-        const [health, nodes, users] = await Promise.all([
-          healthRes.json(),
-          nodesRes.json(),
-          usersRes.json(),
-        ]);
-
-        const next: StatsData = {
-          nodesCount: nodes.nodes?.length ?? 0,
-          usersCount: users.users?.length ?? 0,
-          onlineCount: (nodes.nodes ?? []).filter((n: { online: boolean }) => n.online).length,
-          dbHealthy: health.databaseConnectivity ?? false,
-        };
-
-        cache.data = next;
-        cache.ts = Date.now();
-        setStats(next);
-      } catch {
-        setError("Failed to load dashboard stats");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchStats();
-  }, []);
+  const stats: StatsData = loading
+    ? { nodesCount: 0, usersCount: 0, onlineCount: 0, dbHealthy: null }
+    : {
+        nodesCount: nodes?.nodes?.length ?? 0,
+        usersCount: users?.users?.length ?? 0,
+        onlineCount: (nodes?.nodes ?? []).filter((n: { online: boolean }) => n.online).length,
+        dbHealthy: health?.databaseConnectivity ?? false,
+      };
 
   const statItems = [
     { label: "Total Nodes", value: stats.nodesCount, icon: Desktop },
@@ -110,10 +61,10 @@ export function DashboardStats() {
     );
   }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="space-y-4">
-        <Badge variant="destructive">{error}</Badge>
+        <Badge variant="destructive">{errorMessage}</Badge>
       </div>
     );
   }

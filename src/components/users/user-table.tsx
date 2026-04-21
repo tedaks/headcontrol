@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { User } from "@/lib/types";
+import { headscaleApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { CreateUserDialog } from "./create-user-dialog";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -22,13 +23,12 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
   const { confirm, dialog } = useConfirm();
 
   async function deleteUser(id: string) {
-    const res = await fetch(`/api/headscale/user/${encodeURIComponent(id)}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || data.message || "Failed to delete user");
-      return;
+    try {
+      await headscaleApi.users.delete(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete user");
     }
-    setUsers((prev) => prev.filter((u) => u.id !== id));
   }
 
   function promptDelete(id: string) {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, FloppyDisk, Warning } from "@phosphor-icons/react";
-import { getErrorMessage } from "@/lib/utils";
+import { headscaleApi } from "@/lib/api-client";
 
 interface PolicyEditorProps {
   initialPolicy: string;
@@ -36,19 +36,10 @@ export function PolicyEditor({ initialPolicy }: PolicyEditorProps) {
     setSaving(true);
     setSaveSuccess(false);
     try {
-      const res = await fetch("/api/headscale/policy", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ policy }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(getErrorMessage(data, "Failed to save policy"));
-        return;
-      }
+      await headscaleApi.policy.set(policy);
       setSaveSuccess(true);
-    } catch {
-      setError("Request failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setSaving(false);
     }

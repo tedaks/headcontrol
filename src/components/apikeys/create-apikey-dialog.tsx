@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ApiKey } from "@/lib/types";
+import { headscaleApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getErrorMessage } from "@/lib/utils";
 
 interface CreateApiKeyDialogProps {
   open: boolean;
@@ -31,36 +31,22 @@ export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateA
     setError("");
     setLoading(true);
     try {
-      const body: { expiration?: string } = {};
-      if (expiration) body.expiration = new Date(expiration).toISOString();
+      const expirationIso = expiration ? new Date(expiration).toISOString() : undefined;
 
-      const res = await fetch("/api/headscale/apikey", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(getErrorMessage(data, "Failed to create API key"));
-        return;
-      }
-      const data = await res.json();
+      const data = await headscaleApi.apiKeys.create(expirationIso);
       const apiKeyString: string = data.apiKey;
       setCreatedKey(apiKeyString);
       // Re-fetch API keys list to get the full ApiKey object with prefix/id/etc.
       try {
-        const listRes = await fetch("/api/headscale/apikey");
-        if (listRes.ok) {
-          const { apiKeys } = await listRes.json();
-          // The newest key should be the one we just created — find by matching or take last
-          const newKey = (apiKeys as ApiKey[]).find((k) => !k.expiration || new Date(k.expiration) > new Date());
-          if (newKey) onKeyCreated(newKey);
-        }
+        const listData = await headscaleApi.apiKeys.list();
+        // The newest key should be the one we just created — find by matching or take last
+        const newKey = listData.apiKeys.find((k) => !k.expiration || new Date(k.expiration) > new Date());
+        if (newKey) onKeyCreated(newKey);
       } catch {
         // Non-critical: the table will refresh on next page load
       }
-    } catch {
-      setError("Request failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import type { Node } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tag } from "@phosphor-icons/react";
+import { headscaleApi } from "@/lib/api-client";
 
 interface NodeTagsFormProps {
   nodeId: string;
@@ -23,20 +24,10 @@ export function NodeTagsForm({ nodeId, currentTags, onUpdated }: NodeTagsFormPro
     setLoading(true);
     try {
       const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
-      const res = await fetch(`/api/headscale/node/${encodeURIComponent(nodeId)}/tags`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tags: tagList }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to update tags");
-        return;
-      }
-      const { node } = await res.json();
+      const { node } = await headscaleApi.nodes.setTags(nodeId, tagList);
       onUpdated(node);
-    } catch {
-      setError("Failed to update tags");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update tags");
     } finally {
       setLoading(false);
     }

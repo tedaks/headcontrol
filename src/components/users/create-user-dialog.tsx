@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { User } from "@/lib/types";
+import { headscaleApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getErrorMessage } from "@/lib/utils";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -32,23 +32,13 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/headscale/user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, displayName, email }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(getErrorMessage(data, "Failed to create user"));
-        return;
-      }
-      const { user } = await res.json();
+      const { user } = await headscaleApi.users.create({ name, displayName, email });
       onUserCreated(user);
       setName("");
       setDisplayName("");
       setEmail("");
-    } catch {
-      setError("Request failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setLoading(false);
     }

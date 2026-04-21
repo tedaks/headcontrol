@@ -15,6 +15,7 @@ import { NodeRenameForm } from "./node-rename-form";
 import { NodeTagsForm } from "./node-tags-form";
 import { NodeRoutesForm } from "./node-routes-form";
 import { Trash, ClockCounterClockwise } from "@phosphor-icons/react";
+import { headscaleApi } from "@/lib/api-client";
 
 interface NodeDetailDialogProps {
   node: Node;
@@ -37,33 +38,20 @@ export function NodeDetailDialog({
   async function expireNode() {
     setError("");
     try {
-      const res = await fetch(`/api/headscale/node/${encodeURIComponent(node.id)}/expire?disableExpiry=false`, {
-        method: "POST",
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to expire node");
-        return;
-      }
-      const { node: updated } = await res.json();
+      const { node: updated } = await headscaleApi.nodes.expire(node.id);
       onNodeUpdated(updated);
-    } catch {
-      setError("Failed to expire node");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to expire node");
     }
   }
 
   async function deleteNode() {
     setError("");
     try {
-      const res = await fetch(`/api/headscale/node/${encodeURIComponent(node.id)}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to delete node");
-        return;
-      }
+      await headscaleApi.nodes.delete(node.id);
       onNodeDeleted();
-    } catch {
-      setError("Failed to delete node");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete node");
     }
   }
 

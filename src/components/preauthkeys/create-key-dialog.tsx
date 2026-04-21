@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { PreAuthKey, User } from "@/lib/types";
+import { headscaleApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getErrorMessage } from "@/lib/utils";
+
 
 interface CreateKeyDialogProps {
   users: User[];
@@ -48,21 +49,11 @@ export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: Cre
       if (expiration) body.expiration = new Date(expiration).toISOString();
       if (aclTags) body.aclTags = aclTags.split(",").map((t) => t.trim()).filter(Boolean);
 
-      const res = await fetch("/api/headscale/preauthkey", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(getErrorMessage(data, "Failed to create key"));
-        return;
-      }
-      const { preAuthKey } = await res.json();
+      const { preAuthKey } = await headscaleApi.preAuthKeys.create(body);
       setCreatedKey(preAuthKey.key);
       onKeyCreated(preAuthKey);
-    } catch {
-      setError("Request failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setLoading(false);
     }

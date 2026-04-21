@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RoadHorizon } from "@phosphor-icons/react";
+import { headscaleApi } from "@/lib/api-client";
 
 interface NodeRoutesFormProps {
   nodeId: string;
@@ -24,20 +25,10 @@ export function NodeRoutesForm({ nodeId, availableRoutes, approvedRoutes, onUpda
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`/api/headscale/node/${encodeURIComponent(nodeId)}/approve_routes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ routes: approved }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to update routes");
-        return;
-      }
-      const { node } = await res.json();
+      const { node } = await headscaleApi.nodes.setApprovedRoutes(nodeId, approved);
       onUpdated(node);
-    } catch {
-      setError("Failed to update routes");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update routes");
     } finally {
       setLoading(false);
     }

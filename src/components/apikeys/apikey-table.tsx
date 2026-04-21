@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ApiKey } from "@/lib/types";
+import { headscaleApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreateApiKeyDialog } from "./create-apikey-dialog";
@@ -25,16 +26,7 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
   async function expireKey(prefix: string) {
     setError("");
     try {
-      const res = await fetch("/api/headscale/apikey/expire", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prefix }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to expire API key");
-        return;
-      }
+      await headscaleApi.apiKeys.expire(prefix);
       setApiKeys((prev) =>
         prev.map((k) =>
           k.prefix === prefix
@@ -42,23 +34,18 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
             : k
         )
       );
-    } catch {
-      setError("Failed to expire API key");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to expire API key");
     }
   }
 
   async function deleteKey(prefix: string, id: string) {
     setError("");
     try {
-      const res = await fetch(`/api/headscale/apikey/${encodeURIComponent(prefix)}?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to delete API key");
-        return;
-      }
+      await headscaleApi.apiKeys.delete(prefix, id);
       setApiKeys((prev) => prev.filter((k) => !(k.prefix === prefix && k.id === id)));
-    } catch {
-      setError("Failed to delete API key");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete API key");
     }
   }
 

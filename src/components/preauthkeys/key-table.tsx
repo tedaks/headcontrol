@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { PreAuthKey, User } from "@/lib/types";
+import { headscaleApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreateKeyDialog } from "./create-key-dialog";
@@ -25,21 +26,12 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
   async function expireKey(id: string) {
     setError("");
     try {
-      const res = await fetch("/api/headscale/preauthkey/expire", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to expire key");
-        return;
-      }
+      await headscaleApi.preAuthKeys.expire(id);
       setKeys((prev) =>
         prev.map((k) => (k.id === id ? { ...k, expiration: new Date().toISOString() } : k))
       );
-    } catch {
-      setError("Failed to expire key");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to expire key");
     }
   }
 

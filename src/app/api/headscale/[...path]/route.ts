@@ -30,7 +30,7 @@ async function proxyRequest(req: NextRequest, method: string) {
 
   // Safely extract the Headscale API path, preventing path-traversal
   const rawPath = req.nextUrl.pathname.slice(PREFIX.length);
-  if (!rawPath || rawPath.includes("..")) {
+  if (!rawPath || rawPath.includes("..") || rawPath.includes("%2e%2e")) {
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
   const apiPath = `/api/v1/${rawPath}`;

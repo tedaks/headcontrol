@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { setAuthCookies, validateApiKey, validateHeadscaleUrl } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+
+const loginSchema = z.object({
+  headscaleUrl: z.string().url(),
+  apiKey: z.string().min(1),
+});
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -9,10 +16,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { headscaleUrl, apiKey } = body as Record<string, string>;
+  const parsed = loginSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+  }
 
-  if (!headscaleUrl || !apiKey) {
-    return NextResponse.json({ error: "Server URL and API key are required" }, { status: 400 });
+  const { headscaleUrl, apiKey } = parsed.data;
+
+  const forwarded = req.headers.get("x-forwarded-for");
+  const ip = forwarded?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
+  const limit = rateLimit(`login:${ip}`, 5, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many login attempts", retryAfter: limit.retryAfter },
+      { status: 429 }
+    );
   }
 
   // Prevent SSRF: validate the user-supplied URL before making any request to it

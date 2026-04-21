@@ -5,6 +5,7 @@ import type { Node } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pencil } from "@phosphor-icons/react";
+import { headscaleApi } from "@/lib/api-client";
 
 interface NodeRenameFormProps {
   nodeId: string;
@@ -24,17 +25,11 @@ export function NodeRenameForm({ nodeId, currentName, onRenamed }: NodeRenameFor
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`/api/headscale/node/${encodeURIComponent(nodeId)}/rename/${encodeURIComponent(name)}`, { method: "POST" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to rename node");
-        return;
-      }
-      const { node } = await res.json();
+      const { node } = await headscaleApi.nodes.rename(nodeId, name);
       onRenamed(node);
       setEditing(false);
-    } catch {
-      setError("Failed to rename node");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to rename node");
     } finally {
       setLoading(false);
     }
