@@ -30,10 +30,10 @@ export interface Node {
 }
 
 export type RegisterMethod =
-  | "REGISTER_METHOD_UNSPECIFIED"
-  | "REGISTER_METHOD_AUTH_KEY"
-  | "REGISTER_METHOD_CLI"
-  | "REGISTER_METHOD_OIDC";
+  | 'REGISTER_METHOD_UNSPECIFIED'
+  | 'REGISTER_METHOD_AUTH_KEY'
+  | 'REGISTER_METHOD_CLI'
+  | 'REGISTER_METHOD_OIDC';
 
 export interface PreAuthKey {
   user: User;
@@ -55,15 +55,11 @@ export interface ApiKey {
   lastSeen: string;
 }
 
-export type RegisterMethodLabel =
-  | "Unspecified"
-  | "Auth Key"
-  | "CLI"
-  | "OIDC";
+export type RegisterMethodLabel = 'Unspecified' | 'Auth Key' | 'CLI' | 'OIDC';
 
 export const REGISTER_METHOD_LABELS: Record<RegisterMethod, RegisterMethodLabel> = {
-  REGISTER_METHOD_UNSPECIFIED: "Unspecified",
-  REGISTER_METHOD_AUTH_KEY: "Auth Key",
-  REGISTER_METHOD_CLI: "CLI",
-  REGISTER_METHOD_OIDC: "OIDC",
+  REGISTER_METHOD_UNSPECIFIED: 'Unspecified',
+  REGISTER_METHOD_AUTH_KEY: 'Auth Key',
+  REGISTER_METHOD_CLI: 'CLI',
+  REGISTER_METHOD_OIDC: 'OIDC',
 };
