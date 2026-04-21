@@ -12,21 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreateUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUserCreated: (user: User) => void;
-}
-
-function getErrorMessage(data: unknown, fallback: string): string {
-  if (typeof data === "object" && data !== null) {
-    const obj = data as Record<string, unknown>;
-    return (typeof obj.error === "string" ? obj.error : undefined)
-      ?? (typeof obj.message === "string" ? obj.message : undefined)
-      ?? fallback;
-  }
-  return fallback;
 }
 
 export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUserDialogProps) {

@@ -5,6 +5,7 @@ import type { PreAuthKey, User } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreateKeyDialog } from "./create-key-dialog";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Table,
   TableBody,
@@ -19,9 +20,9 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
   const [keys, setKeys] = useState(initialKeys);
   const [createOpen, setCreateOpen] = useState(false);
   const [error, setError] = useState("");
+  const { confirm, dialog } = useConfirm();
 
   async function expireKey(id: string) {
-    if (!confirm("Expire this key?")) return;
     setError("");
     try {
       const res = await fetch("/api/headscale/preauthkey/expire", {
@@ -49,6 +50,7 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
 
   return (
     <div className="space-y-4">
+      {dialog}
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Key size={16} className="mr-1" />
@@ -99,7 +101,14 @@ export function KeyTable({ keys: initialKeys, users }: { keys: PreAuthKey[]; use
                 </TableCell>
                 <TableCell>
                   {!isExpired(key) && (
-                    <Button variant="ghost" size="icon-xs" onClick={() => expireKey(key.id)}>
+                    <Button variant="ghost" size="icon-xs" onClick={() => {
+                      confirm({
+                        title: "Expire Pre-Auth Key",
+                        description: "Are you sure you want to expire this key?",
+                        confirmLabel: "Expire",
+                        onConfirm: () => expireKey(key.id),
+                      });
+                    }}>
                       <Clock size={14} />
                     </Button>
                   )}

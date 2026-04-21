@@ -20,22 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreateKeyDialogProps {
   users: User[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onKeyCreated: (key: PreAuthKey) => void;
-}
-
-function getErrorMessage(data: unknown, fallback: string): string {
-  if (typeof data === "object" && data !== null) {
-    const obj = data as Record<string, unknown>;
-    return (typeof obj.error === "string" ? obj.error : undefined)
-      ?? (typeof obj.message === "string" ? obj.message : undefined)
-      ?? fallback;
-  }
-  return fallback;
 }
 
 export function CreateKeyDialog({ users, open, onOpenChange, onKeyCreated }: CreateKeyDialogProps) {

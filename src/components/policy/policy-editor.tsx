@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, FloppyDisk, Warning } from "@phosphor-icons/react";
+import { getErrorMessage } from "@/lib/utils";
 
 interface PolicyEditorProps {
   initialPolicy: string;
@@ -24,8 +25,7 @@ export function PolicyEditor({ initialPolicy }: PolicyEditorProps) {
     }
   }
 
-  // Compute once per render instead of calling validateJson() multiple times
-  const isValid = useMemo(() => validateJson(policy), [policy]);
+  const isValid = validateJson(policy);
 
   async function handleSave() {
     if (!isValid) {
@@ -43,7 +43,7 @@ export function PolicyEditor({ initialPolicy }: PolicyEditorProps) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || data.message || "Failed to save policy");
+        setError(getErrorMessage(data, "Failed to save policy"));
         return;
       }
       setSaveSuccess(true);

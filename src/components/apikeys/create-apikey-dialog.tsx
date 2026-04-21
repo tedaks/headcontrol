@@ -12,21 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreateApiKeyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onKeyCreated: (key: ApiKey) => void;
-}
-
-function getErrorMessage(data: unknown, fallback: string): string {
-  if (typeof data === "object" && data !== null) {
-    const obj = data as Record<string, unknown>;
-    return (typeof obj.error === "string" ? obj.error : undefined)
-      ?? (typeof obj.message === "string" ? obj.message : undefined)
-      ?? fallback;
-  }
-  return fallback;
 }
 
 export function CreateApiKeyDialog({ open, onOpenChange, onKeyCreated }: CreateApiKeyDialogProps) {

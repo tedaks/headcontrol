@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { User } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CreateUserDialog } from "./create-user-dialog";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Table,
   TableBody,
@@ -18,25 +19,32 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
   const [users, setUsers] = useState(initialUsers);
   const [createOpen, setCreateOpen] = useState(false);
   const [error, setError] = useState("");
+  const { confirm, dialog } = useConfirm();
 
   async function deleteUser(id: string) {
-    if (!confirm("Delete this user?")) return;
-    setError("");
-    try {
-      const res = await fetch(`/api/headscale/user/${encodeURIComponent(id)}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: "Failed to delete user" }));
-        setError(data.error || data.message || "Failed to delete user");
-        return;
-      }
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-    } catch {
-      setError("Failed to delete user");
+    const res = await fetch(`/api/headscale/user/${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || data.message || "Failed to delete user");
+      return;
     }
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+  }
+
+  function promptDelete(id: string) {
+    setError("");
+    confirm({
+      title: "Delete User",
+      description: "Are you sure you want to delete this user? This action cannot be undone.",
+      destructive: true,
+      confirmLabel: "Delete",
+      onConfirm: () => deleteUser(id),
+    });
   }
 
   return (
     <div className="space-y-4">
+      {dialog}
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <UserPlus size={16} className="mr-1" />
@@ -79,7 +87,7 @@ export function UserTable({ users: initialUsers }: { users: User[] }) {
                   <Button
                     variant="ghost"
                     size="icon-xs"
-                    onClick={() => deleteUser(user.id)}
+                    onClick={() => promptDelete(user.id)}
                   >
                     <Trash size={14} className="text-destructive" />
                   </Button>

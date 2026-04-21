@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Desktop, Users, CheckCircle, Warning } from "@phosphor-icons/react";
+import { getErrorMessage } from "@/lib/utils";
 
 interface StatsData {
   nodesCount: number;
@@ -12,15 +13,13 @@ interface StatsData {
   dbHealthy: boolean | null;
 }
 
-function getErrorMessage(data: unknown, fallback: string): string {
-  if (typeof data === "object" && data !== null) {
-    const obj = data as Record<string, unknown>;
-    return (typeof obj.error === "string" ? obj.error : undefined)
-      ?? (typeof obj.message === "string" ? obj.message : undefined)
-      ?? fallback;
-  }
-  return fallback;
-}
+// Simple in-memory cache to avoid refetching on every mount
+const cache: {
+  data?: StatsData;
+  ts?: number;
+} = {};
+
+const TTL_MS = 30_000;
 
 export function DashboardStats() {
   const [stats, setStats] = useState<StatsData>({
@@ -34,6 +33,13 @@ export function DashboardStats() {
 
   useEffect(() => {
     async function fetchStats() {
+      // Use cached data if still fresh
+      if (cache.data && cache.ts && Date.now() - cache.ts < TTL_MS) {
+        setStats(cache.data);
+        setLoading(false);
+        return;
+      }
+
       try {
         const [healthRes, nodesRes, usersRes] = await Promise.all([
           fetch("/api/headscale/health"),
@@ -54,12 +60,16 @@ export function DashboardStats() {
           usersRes.json(),
         ]);
 
-        setStats({
+        const next: StatsData = {
           nodesCount: nodes.nodes?.length ?? 0,
           usersCount: users.users?.length ?? 0,
           onlineCount: (nodes.nodes ?? []).filter((n: { online: boolean }) => n.online).length,
           dbHealthy: health.databaseConnectivity ?? false,
-        });
+        };
+
+        cache.data = next;
+        cache.ts = Date.now();
+        setStats(next);
       } catch {
         setError("Failed to load dashboard stats");
       } finally {

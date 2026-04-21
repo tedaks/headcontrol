@@ -13,6 +13,11 @@ Key Next.js 16 changes:
 - 300 line limit on all source code files
 - Tailwind + shadcn only — no custom CSS, no inline styles, no third-party CSS
 - Use shadcn primitives — `<Button>` over `<button>`, `<Input>` over `<input>`, etc.
+- Never use native `confirm()` for destructive actions; use `useConfirm()` from `@/components/ui/confirm-dialog`
+
+## Environment
+
+- Copy `.env.example` to `.env.local` for local development. `.env.local` is gitignored.
 
 ## Next.js Conventions
 

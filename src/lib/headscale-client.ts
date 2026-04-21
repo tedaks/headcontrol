@@ -12,17 +12,17 @@ class HeadscaleError extends Error {
 
 export { HeadscaleError };
 
-/** Timeout helper – aborts the fetch if the server takes too long. */
-function withTimeout(init: RequestInit | undefined, ms: number): RequestInit {
+/** Timeout helper – returns init with an abort signal and a clear callback. */
+function withTimeout(init: RequestInit | undefined, ms: number): { init: RequestInit; clear: () => void } {
   const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
   const merged: RequestInit = {
     ...init,
     signal: init?.signal
       ? mergeSignals(init.signal, controller.signal)
       : controller.signal,
   };
-  setTimeout(() => controller.abort(), ms);
-  return merged;
+  return { init: merged, clear: () => clearTimeout(timer) };
 }
 
 /** Merge two AbortSignals so that either can trigger abort. */
@@ -47,23 +47,27 @@ export function createHeadscaleClient(baseUrl: string, apiKey: string) {
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const url = `${base}${path}`;
-    const timedInit = withTimeout(init, REQUEST_TIMEOUT_MS);
-    const res = await fetch(url, {
-      ...timedInit,
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        ...init?.headers,
-      },
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => res.statusText);
-      throw new HeadscaleError(body || res.statusText, res.status);
+    const { init: timedInit, clear } = withTimeout(init, REQUEST_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        ...timedInit,
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          ...init?.headers,
+        },
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => res.statusText);
+        throw new HeadscaleError(body || res.statusText, res.status);
+      }
+      // Handle empty bodies (e.g. DELETE 200 OK with no content)
+      const text = await res.text();
+      if (!text) return undefined as unknown as T;
+      return JSON.parse(text) as T;
+    } finally {
+      clear();
     }
-    // Handle empty bodies (e.g. DELETE 200 OK with no content)
-    const text = await res.text();
-    if (!text) return undefined as unknown as T;
-    return JSON.parse(text) as T;
   }
 
   return {
@@ -192,17 +196,23 @@ export function createHeadscaleClient(baseUrl: string, apiKey: string) {
 /**
  * Legacy default export for convenience — reads from env vars.
  * Prefer `createHeadscaleClient()` with cookie-based credentials.
+ * Lazy-initialised so the build does not fail if env vars are absent.
  */
-function getBaseUrl(): string {
-  const url = process.env.HEADSCALE_URL;
-  if (!url) throw new HeadscaleError("HEADSCALE_URL is not configured", 500);
-  return url.replace(/\/$/, "");
-}
+let _headscaleClient: ReturnType<typeof createHeadscaleClient> | null = null;
 
-function getApiKey(): string {
-  const key = process.env.HEADSCALE_API_KEY;
-  if (!key) throw new HeadscaleError("HEADSCALE_API_KEY is not configured", 500);
-  return key;
+export function getHeadscaleClient() {
+  if (!_headscaleClient) {
+    function getBaseUrl(): string {
+      const url = process.env.HEADSCALE_URL;
+      if (!url) throw new HeadscaleError("HEADSCALE_URL is not configured", 500);
+      return url.replace(/\/$/, "");
+    }
+    function getApiKey(): string {
+      const key = process.env.HEADSCALE_API_KEY;
+      if (!key) throw new HeadscaleError("HEADSCALE_API_KEY is not configured", 500);
+      return key;
+    }
+    _headscaleClient = createHeadscaleClient(getBaseUrl(), getApiKey());
+  }
+  return _headscaleClient;
 }
-
-export const headscale = createHeadscaleClient(getBaseUrl(), getApiKey());

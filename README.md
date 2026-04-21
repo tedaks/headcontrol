@@ -20,7 +20,11 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). You'll be redirected to login - configure your Headscale server URL and API key in `.env.local`:
+Open [http://localhost:3000](http://localhost:3000). You'll be redirected to login - configure your Headscale server URL and API key in `.env.local`. Copy from the example:
+
+```bash
+cp .env.example .env.local
+```
 
 ```
 HEADSCALE_URL=http://localhost:8080

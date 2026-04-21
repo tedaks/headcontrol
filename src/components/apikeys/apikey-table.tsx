@@ -5,6 +5,7 @@ import type { ApiKey } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreateApiKeyDialog } from "./create-apikey-dialog";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Table,
   TableBody,
@@ -19,9 +20,9 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
   const [apiKeys, setApiKeys] = useState(initialKeys);
   const [createOpen, setCreateOpen] = useState(false);
   const [error, setError] = useState("");
+  const { confirm, dialog } = useConfirm();
 
   async function expireKey(prefix: string) {
-    if (!confirm("Expire this API key?")) return;
     setError("");
     try {
       const res = await fetch("/api/headscale/apikey/expire", {
@@ -47,7 +48,6 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
   }
 
   async function deleteKey(prefix: string, id: string) {
-    if (!confirm("Delete this API key?")) return;
     setError("");
     try {
       const res = await fetch(`/api/headscale/apikey/${encodeURIComponent(prefix)}?id=${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -69,6 +69,7 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
 
   return (
     <div className="space-y-4">
+      {dialog}
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <ShieldPlus size={16} className="mr-1" />
@@ -118,11 +119,26 @@ export function ApiKeyTable({ apiKeys: initialKeys }: { apiKeys: ApiKey[] }) {
                 <TableCell>
                   <div className="flex gap-1">
                     {!isExpired(key) && (
-                      <Button variant="ghost" size="icon-xs" onClick={() => expireKey(key.prefix)}>
+                      <Button variant="ghost" size="icon-xs" onClick={() => {
+                        confirm({
+                          title: "Expire API Key",
+                          description: "Are you sure you want to expire this API key?",
+                          confirmLabel: "Expire",
+                          onConfirm: () => expireKey(key.prefix),
+                        });
+                      }}>
                         <Clock size={14} />
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon-xs" onClick={() => deleteKey(key.prefix, key.id)}>
+                    <Button variant="ghost" size="icon-xs" onClick={() => {
+                      confirm({
+                        title: "Delete API Key",
+                        description: "Are you sure you want to delete this API key?",
+                        destructive: true,
+                        confirmLabel: "Delete",
+                        onConfirm: () => deleteKey(key.prefix, key.id),
+                      });
+                    }}>
                       <Trash size={14} className="text-destructive" />
                     </Button>
                   </div>
